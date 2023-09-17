@@ -1,43 +1,43 @@
 class script(object):
     START_TXT = """<b>ɪ ᴀᴍ ᴘᴏᴡᴇʀғᴜʟ ᴀᴜᴛᴏ ғɪʟᴛᴇʀ ᴡɪᴛʜ ʟɪɴᴋ sʜᴏʀᴛᴇɴᴇʀ ʙᴏᴛ. ʏᴏᴜ ᴄᴀɴ ᴜꜱᴇ ᴀꜱ ᴀᴜᴛᴏ ғɪʟᴛᴇʀ ᴡɪᴛʜ ʟɪɴᴋ sʜᴏʀᴛᴇɴᴇʀ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ... ɪᴛ'ꜱ ᴇᴀꜱʏ ᴛᴏ ᴜꜱᴇ ᴊᴜsᴛ ᴀᴅᴅ ᴍᴇ ᴀꜱ ᴀᴅᴍɪɴ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ ɪ ᴡɪʟʟ ᴘʀᴏᴠɪᴅᴇ ᴛʜᴇʀᴇ ᴍᴏᴠɪᴇꜱ ᴡɪᴛʜ ʏᴏᴜʀ ʟɪɴᴋ ꜱʜᴏʀᴛᴇɴᴇʀ...</b>"""
 
-    MY_ABOUT_TXT = """★ Server: <a href=https://www.heroku.com>Heroku</a>
-★ Database: <a href=https://www.mongodb.com>MongoDB</a>
-★ Language: <a href=https://www.python.org>Python</a>
-★ Library: <a href=https://pyrogram.org>Pyrogram</a>"""
+    MY_ABOUT_TXT = """★ sᴇʀᴠᴇʀ: <a href=https://www.heroku.com>Heroku</a>
+★ ᴅᴀᴛᴀʙᴀsᴇ: <a href=https://www.mongodb.com>MongoDB</a>
+★ ʟᴀɴɢᴜᴀɢᴇ: <a href=https://www.python.org>Python</a>
+★ ʟɪʙʀᴀʀʏ: <a href=https://pyrogram.org>Pyrogram</a>"""
 
-    MY_OWNER_TXT = """★ Name: Hansaka Anuhas
-★ Username: @Hansaka_Anuhas
-★ ID: <code>5493832202</code>
-★ Country: Sri Lanka 🇱🇰"""
+    MY_OWNER_TXT = """★ Name: Mr Tamil KiD
+★ ᴜsᴇʀɴᴀᴍᴇ: @MrTamilKiD
+★ ID: <code>5400525106</code>
+★ ᴄᴏᴜɴᴛʀʏ: Bharat 🇮🇳(India)"""
 
-    STATUS_TXT = """🗂 Total Files: <code>{}</code>
-👤 Total Users: <code>{}</code>
-👥 Total Chats: <code>{}</code>
-✨ Used Storage: <code>{}</code>
-⚡️ Free Storage: <code>{}</code>"""
+    STATUS_TXT = """🗂 ᴛᴏᴛᴀʟ ғɪʟᴇs: <code>{}</code>
+👤 ᴛᴏᴛᴀʟ ᴜsᴇʀs: <code>{}</code>
+👥 ᴛᴏᴛᴀʟ ᴄʜᴀᴛs: <code>{}</code>
+✨ ᴜsᴇᴅ sᴛᴏʀᴀɢᴇ: <code>{}</code>
+⚡️ ғʀᴇᴇ sᴛᴏʀᴀɢᴇ: <code>{}</code>"""
 
     NEW_GROUP_TXT = """#NewGroup
-★ Title: {}
-★ ID: <code>{}</code>
-★ Total Members: {}
-★ Added by: {}"""
+★ ᴛɪᴛʟᴇ: {}
+★ ɪᴅ: <code>{}</code>
+★ ᴛᴏᴛᴀʟ ᴍᴇᴍʙᴇʀs: {}
+★ ᴀᴅᴅᴇᴅ ʙʏ: {}"""
 
     NEW_USER_TXT = """#NewUser
-★ Name: {}
+★ ɴᴀᴍᴇ: {}
 ★ ID: <code>{}</code>"""
 
     NO_RESULT_TXT = """#NoResult
-★ Group Name: {}
-★ Group ID: <code>{}</code>
-★ Name: {}
+★ ɢʀᴏᴜᴘɴᴀᴍᴇ: {}
+★ ɢʀᴏᴜᴘ ID: <code>{}</code>
+★ ɴᴀᴍᴇ: {}
 
-★ Message: {}"""
+★ ᴍᴇssᴀɢᴇ: {}"""
 
-    REQUEST_TXT = """★ Name: {}
+    REQUEST_TXT = """★ ɴᴀᴍᴇ: {}
 ★ ID: <code>{}</code>
 
-★ Message: {}"""
+★ ᴍᴇssᴀɢᴇ: {}"""
 
     EARN_TXT = """<b>ʜᴏᴡ ᴛᴏ ᴇᴀʀɴ ꜰʀᴏᴍ ᴛʜɪs ʙᴏᴛ
 
@@ -45,7 +45,7 @@ class script(object):
 
 » sᴛᴇᴘ 1:- ғɪʀsᴛ ʏᴏᴜ ʜᴀᴠᴇ ᴛᴏ ᴀᴅᴅ ᴛʜɪs ʙᴏᴛ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ ᴡɪᴛʜ ᴀᴅᴍɪɴ ᴘᴇʀᴍɪssɪᴏɴ.
 
-» sᴛᴇᴘ 2:- ᴍᴀᴋᴇ ᴀᴄᴄᴏᴜɴᴛ ᴏɴ <a href=https://telegram.me/how_to_download_channel/14>mdisklink.link</a> [ ʏᴏᴜ ᴄᴀɴ ᴀʟsᴏ ᴜsᴇ ᴏᴛʜᴇʀ sʜᴏʀᴛɴᴇʀ ᴡᴇʙsɪᴛᴇ ]
+» sᴛᴇᴘ 2:- ᴍᴀᴋᴇ ᴀᴄᴄᴏᴜɴᴛ ᴏɴ <a href=https://t.me/BGM_LinkzZ/44>mdisklink.link</a> [ ʏᴏᴜ ᴄᴀɴ ᴀʟsᴏ ᴜsᴇ ᴏᴛʜᴇʀ sʜᴏʀᴛɴᴇʀ ᴡᴇʙsɪᴛᴇ ]
 
 » sᴛᴇᴘ 3:- ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʙᴇʟᴏᴡ ɢɪᴠᴇɴ ʙᴜᴛᴛᴏɴ ᴛᴏ ᴋɴᴏᴡ ʜᴏᴡ ᴛᴏ ᴄᴏɴɴᴇᴄᴛ ʏᴏᴜʀ sʜᴏʀᴛɴᴇʀ ᴡɪᴛʜ ᴛʜɪs ʙᴏᴛ.
 
