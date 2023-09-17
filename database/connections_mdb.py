@@ -8,7 +8,7 @@ logger.setLevel(logging.ERROR)
 
 myclient = pymongo.MongoClient(DATABASE_URL)
 mydb = myclient[DATABASE_NAME]
-mycol = mydb['Connections']   
+mycol = mydb['CONNECTIONS']   
 
 
 async def add_connection(group_id, user_id):
