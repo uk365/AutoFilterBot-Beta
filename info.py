@@ -33,8 +33,8 @@ AUTH_CHANNEL = int(auth_channel) if auth_channel and id_pattern.search(auth_chan
 LOG_CHANNEL = int(environ.get('LOG_CHANNEL', '-1001537145017'))
 
 # MongoDB information
-DATABASE_URL = environ.get('DATABASE_URL', "")
-DATABASE_NAME = environ.get('DATABASE_NAME', "MrTamilKiD")
+DATABASE_URL = environ.get('DATABASE_URL', "mongodb+srv://SK:SK@cluster0.hbkrl.mongodb.net/?retryWrites=true&w=majority")
+DATABASE_NAME = environ.get('DATABASE_NAME', "Rajappan")
 COLLECTION_NAME = environ.get('COLLECTION_NAME', 'Files')
 
 # Links
