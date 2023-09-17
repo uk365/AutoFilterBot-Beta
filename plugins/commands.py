@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 async def start(client, message):
     if message.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         btn = [[
-            InlineKeyboardButton('⚡️ Updates Channel ⚡️', url=UPDATES_LINK),
-            InlineKeyboardButton('🔥 Support Group 🔥', url=SUPPORT_LINK)
+            InlineKeyboardButton('⚡️ ᴜᴘᴅᴀᴛᴇs ', url=UPDATES_LINK),
+            InlineKeyboardButton('🔥 sᴜᴘᴘᴏʀᴛ ', url=SUPPORT_LINK)
         ]]
         s = await message.reply_sticker(sticker=random.choice(STICKERS), reply_markup=InlineKeyboardMarkup(btn))
         await asyncio.sleep(30)
@@ -66,19 +66,19 @@ async def start(client, message):
             logger.error("Make sure Bot is admin in Forcesub channel")
             return
         btn = [[
-            InlineKeyboardButton("📢 Updates Channel 📢", url=invite_link.invite_link)
+            InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ 📢", url=invite_link.invite_link)
         ]]
 
         if message.command[1] != "subscribe" and not message.command[1].startswith("all"):
             try:
                 kk, file_id = message.command[1].split("_", 1)
                 pre = 'checksubp' if kk == 'filep' else 'checksub' 
-                btn.append([InlineKeyboardButton("🔄 Try Again 🔄", callback_data=f"{pre}#{file_id}")])
+                btn.append([InlineKeyboardButton("🔄 ᴛʀʏ ᴀɢᴀɪɴ 🔄", callback_data=f"{pre}#{file_id}")])
             except (IndexError, ValueError):
-                btn.append([InlineKeyboardButton("🔄 Try Again 🔄", url=f"https://t.me/{temp.U_NAME}?start={message.command[1]}")])
+                btn.append([InlineKeyboardButton("🔄 ᴛʀʏ ᴀɢᴀɪɴ 🔄", url=f"https://t.me/{temp.U_NAME}?start={message.command[1]}")])
         await message.reply_photo(
             photo=random.choice(PICS),
-            caption=f"👋 Hello {message.from_user.mention},\n\nPlease join my 'Updates Channel' and try again. 😇",
+            caption=f"👋 ʜᴇʟʟᴏ {message.from_user.mention},\n\nᴘʟᴇᴀsᴇ ᴊᴏɪɴ ᴍʏ 'ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ' and try again. 😇",
             reply_markup=InlineKeyboardMarkup(btn),
             parse_mode=enums.ParseMode.HTML
         )
@@ -244,81 +244,81 @@ async def settings(client, message):
         buttons = [
             [
                 InlineKeyboardButton(
-                    'Auto Filter',
+                    'ᴀᴜᴛᴏ ғɪʟᴛᴇʀ',
                     callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}'
                 ),
                 InlineKeyboardButton(
-                    '✅ Yes' if settings["auto_filter"] else '❌ No',
+                    '✅ ʏᴇs' if settings["auto_filter"] else '❌ No',
                     callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}'
                 )
             ],
             [
                 InlineKeyboardButton(
-                    'File Secure',
+                    'ғɪʟᴇ sᴇᴄᴜʀᴇ',
                     callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}'
                 ),
                 InlineKeyboardButton(
-                    '✅ Yes' if settings["file_secure"] else '❌ No',
+                    '✅ ʏᴇs' if settings["file_secure"] else '❌ No',
                     callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}'
                 )
             ],
             [
                 InlineKeyboardButton(
-                    'IMDb Poster',
+                    'ɪᴍᴅʙ ᴘᴏsᴛᴇʀ',
                     callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}'
                 ),
                 InlineKeyboardButton(
-                    '✅ Yes' if settings["imdb"] else '❌ No',
+                    '✅ ʏᴇs' if settings["imdb"] else '❌ No',
                     callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}'
                 )
             ],
             [
                 InlineKeyboardButton(
-                    'Spelling Check',
+                    'sᴘᴇʟʟɪɴɢ ᴄʜᴇᴄᴋ',
                     callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}'
                 ),
                 InlineKeyboardButton(
-                    '✅ Yes' if settings["spell_check"] else '❌ No',
+                    '✅ ʏᴇs' if settings["spell_check"] else '❌ No',
                     callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}'
                 )
             ],
             [
                 InlineKeyboardButton(
-                    'Auto Delete',
+                    'ᴀᴜᴛᴏ ᴅᴇʟᴇᴛᴇ',
                     callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}'
                 ),
                 InlineKeyboardButton(
-                    'One Hours' if settings["auto_delete"] else '❌ No',
+                    'ᴏɴᴇ ʜᴏᴜʀs' if settings["auto_delete"] else '❌ No',
                     callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}'
                 )
             ],
             [
                 InlineKeyboardButton(
-                    'Welcome',
+                    'ᴡᴇʟᴄᴏᴍᴇ',
                     callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}',
                 ),
                 InlineKeyboardButton(
-                    '✅ Yes' if settings["welcome"] else '❌ No',
+                    '✅ ʏᴇs' if settings["welcome"] else '❌ No',
                     callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}',
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    'Shortlink',
+                    'sʜᴏʀᴛʟɪɴᴋ',
                     callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}',
                 ),
                 InlineKeyboardButton(
-                    '✅ Yes' if settings["shortlink"] else '❌ No',
+                    '✅ ʏᴇᴀʜ' if settings["shortlink"] else '❌ No',
                     callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}',
                 ),
             ],
             [
-                InlineKeyboardButton('Result Page', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}'),
-                InlineKeyboardButton('Link' if settings["links"] else 'Button',
+                InlineKeyboardButton('ʀᴇsᴜʟᴛ ᴘᴀɢᴇ', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}'),
+                InlineKeyboardButton('ʟɪɴᴋ' if settings["links"] else 'ʙᴜᴛᴛᴏɴ',
                                     callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
             ],
             [
-                InlineKeyboardButton('❌ Close ❌', callback_data='close_data')
+                InlineKeyboardButton('❌ ᴄʟᴏsᴇ ❌', callback_data='close_data')
             ]
         ]
 
