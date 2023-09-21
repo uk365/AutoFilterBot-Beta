@@ -48,12 +48,12 @@ class Bot(Client):
         logging.info(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
         logging.info(LOG_STR)
         await self.send_message(chat_id=LOG_CHANNEL, text=f"<b>{me.mention} Restarted! 🤖</b>")
-        chats = await db.get_all_chats()
-        async for chat in chats:
-            try:
-                await self.send_message(chat_id=chat['id'], text="Bot Restarted! 🤖")
-            except:
-                pass
+       # chats = await db.get_all_chats()
+      #  async for chat in chats:
+         #   try:
+            #    await self.send_message(chat_id=chat['id'], text="Bot Restarted! 🤖")
+         #   except:
+         #       pass
 
     async def stop(self, *args):
         await super().stop()
