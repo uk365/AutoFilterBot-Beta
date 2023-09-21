@@ -39,7 +39,7 @@ async def answer(bot, query):
 
     results = []
     if '|' in query.query:
-        string, file_type = query.query.split('|', maxsplit=1)
+        string, file_type = query.query.split('|', maxsplit=2)
         string = string.strip()
         file_type = file_type.strip().lower()
     else:
@@ -50,7 +50,7 @@ async def answer(bot, query):
     reply_markup = get_reply_markup(query=string)
     files, next_offset, total = await get_search_results(string,
                                                   file_type=file_type,
-                                                  max_results=10,
+                                                  max_results=3,
                                                   offset=offset)
 
     for file in files:
