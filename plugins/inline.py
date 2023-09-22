@@ -68,7 +68,7 @@ async def answer(bot, query):
                 reply_markup=reply_markup))
 
     if results:
-        switch_pm_text = f"{emoji.FILE_FOLDER} Results - {total}"
+        switch_pm_text = f"{emoji.FILE_FOLDER} ʀᴇsᴜʟᴛs - {total}"
         if string:
             switch_pm_text += f" for {string}"
         try:
@@ -76,14 +76,14 @@ async def answer(bot, query):
                            is_personal = True,
                            cache_time=cache_time,
                            switch_pm_text=switch_pm_text,
-                           switch_pm_parameter="start",
-                           next_offset=str(next_offset))
+                           switch_pm_parameter="help",
+                          # next_offset=str(next_offset))
         except QueryIdInvalid:
             pass
         except Exception as e:
             logging.exception(str(e))
     else:
-        switch_pm_text = f'{emoji.CROSS_MARK} No results'
+        switch_pm_text = f'{emoji.CROSS_MARK} ɴᴏ ʀᴇsᴜʟᴛs'
         if string:
             switch_pm_text += f' for "{string}"'
 
