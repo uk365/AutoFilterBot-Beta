@@ -36,26 +36,27 @@ async def answer(bot, query):
                            switch_pm_text='Please join my Updates Channel :)',
                            switch_pm_parameter="subscribe")
         return
-
+        
     results = []
     if '|' in query.query:
-        string, file_type = query.query.split('|', maxsplit=3)
-        string = string.strip()
-        file_type = file_type.strip().lower()
+        query_parts = query.query.split('|', maxsplit=2)
+        string = query_parts[0].strip()
+        file_type = query_parts[1].strip().lower()
     else:
         string = query.query.strip()
         file_type = None
 
-    offset = int(query.offset or 3)
+    offset = int(query.offset or 2)
     reply_markup = get_reply_markup(query=string)
-    files, next_offset, total = await get_search_results("Tamil", 
-                                                  string,
-                                                  file_type=file_type,
-                                                  max_results=10,
-                                                  offset=offset)
+    files, next_offset, total = await get_search_results(
+        string,
+        file_type=file_type,
+        max_results=10,
+        offset=offset
+    )
 
     for file in files:
-        f_caption=FILE_CAPTION.format(
+        f_caption = FILE_CAPTION.format(
             file_name=file.file_name,
             file_size=get_size(file.file_size),
             caption=file.caption
@@ -66,35 +67,39 @@ async def answer(bot, query):
                 document_file_id=file.file_id,
                 caption=f_caption,
                 description=f'Size: {get_size(file.file_size)}\nType: {file.file_type}',
-                reply_markup=reply_markup))
+                reply_markup=reply_markup
+            )
+        )
 
     if results:
-        switch_pm_text = f"{emoji.FILE_FOLDER} ʀᴇsᴜʟᴛs - {total}"
+        switch_pm_text = f"{emoji.FILE_FOLDER} Results - {total}"
         if string:
             switch_pm_text += f" for {string}"
         try:
-            await query.answer(results=results,
-                           is_personal = True,
-                           cache_time=cache_time,
-                           switch_pm_text=switch_pm_text,
-                           switch_pm_parameter="start",
-                           next_offset=str(next_offset)
-                              )
+            await query.answer(
+                results=results,
+                is_personal=True,
+                cache_time=cache_time,
+                switch_pm_text=switch_pm_text,
+                switch_pm_parameter="start",
+                next_offset=str(next_offset)
+            )
         except QueryIdInvalid:
             pass
         except Exception as e:
             logging.exception(str(e))
     else:
-        switch_pm_text = f'{emoji.CROSS_MARK} ɴᴏ ʀᴇsᴜʟᴛs'
+        switch_pm_text = f'{emoji.CROSS_MARK} No results'
         if string:
             switch_pm_text += f' for "{string}"'
 
-        await query.answer(results=[],
-                           is_personal = True,
-                           cache_time=cache_time,
-                           switch_pm_text=switch_pm_text,
-                           switch_pm_parameter="okay")
-
+        await query.answer(
+            results=[],
+            is_personal=True,
+            cache_time=cache_time,
+            switch_pm_text=switch_pm_text,
+            switch_pm_parameter="okay"
+        )
 
 def get_reply_markup(query):
     buttons = [[
