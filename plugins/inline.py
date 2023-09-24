@@ -43,10 +43,10 @@ async def answer(bot, query):
         string = string.strip()
         file_type = file_type.strip().lower()
     else:
-        string = query.query.strip(1)
+        string = query.query.strip()
         file_type = None
 
-    offset = int(query.offset or 2)
+    offset = int(query.offset or 3)
     reply_markup = get_reply_markup(query=string)
     files, next_offset, total = await get_search_results(string,
                                                   file_type=file_type,
