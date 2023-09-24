@@ -39,7 +39,7 @@ async def answer(bot, query):
 
     results = []
     if '|' in query.query:
-        string, file_type = query.query.split('|', maxsplit=2)
+        string, file_type = query.query.split('|', maxsplit=3)
         string = string.strip()
         file_type = file_type.strip().lower()
     else:
