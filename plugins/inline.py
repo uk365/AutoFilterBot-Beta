@@ -50,7 +50,7 @@ async def answer(bot, query):
     reply_markup = get_reply_markup(query=string)
     files, next_offset, total = await get_search_results(string,
                                                   file_type=file_type,
-                                                  max_results=3,
+                                                  max_results=10,
                                                   offset=offset)
 
     for file in files:
@@ -76,7 +76,7 @@ async def answer(bot, query):
                            is_personal = True,
                            cache_time=cache_time,
                            switch_pm_text=switch_pm_text,
-                           switch_pm_parameter="help",
+                           switch_pm_parameter="start",
                            next_offset=str(next_offset)
                               )
         except QueryIdInvalid:
