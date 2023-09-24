@@ -37,13 +37,13 @@ async def answer(bot, query):
                            switch_pm_parameter="subscribe")
         return
 
-    results = ["kgf"]
+    results = []
     if '|' in query.query:
         string, file_type = query.query.split('|', maxsplit=2)
         string = string.strip()
         file_type = file_type.strip().lower()
     else:
-        string = query.query.strip()
+        string = query.query.strip(1)
         file_type = None
 
     offset = int(query.offset or 2)
