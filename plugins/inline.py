@@ -1,7 +1,7 @@
 import logging
 from pyrogram import Client, emoji, filters
 from pyrogram.errors.exceptions.bad_request_400 import QueryIdInvalid
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultCachedDocument, InlineQuery
+from pyrogram.types import *
 from database.ia_filterdb import get_search_results
 from utils import is_subscribed, get_size, temp
 from info import CACHE_TIME, AUTH_USERS, AUTH_CHANNEL, SUPPORT_LINK, UPDATES_LINK, FILE_CAPTION
@@ -38,7 +38,12 @@ async def answer(bot, query):
         return
         
     results = []
-    if '|' in query.query:
+    answers = list()
+    if '1' in query.query:
+        
+        answers.append(InlineQueryResultArticle(title="This is Movie Search Bot!", description="You can search Movie using this bot.", input_message_content=InputTextMessageContent(message_text="Using this Bot you can Search a Movie.\n\n", disable_web_page_preview=True)))
+        return
+    elif '|' in query.query:
         query_parts = query.query.split('|', maxsplit=2)
         string = query_parts[0].strip()
         file_type = query_parts[1].strip().lower()
