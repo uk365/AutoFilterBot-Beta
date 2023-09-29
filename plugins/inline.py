@@ -1,3 +1,4 @@
+
 import logging
 from pyrogram import Client, emoji, filters
 from pyrogram.errors.exceptions.bad_request_400 import QueryIdInvalid
@@ -38,11 +39,10 @@ async def answer(bot, query):
         return
         
     results = []
-    answers = list()
     if '1' in query.query:
-        
-        answers.append(InlineQueryResultArticle(title="This is Movie Search Bot!", description="You can search Movie using this bot.", input_message_content=InputTextMessageContent(message_text="Using this Bot you can Search a Movie.\n\n", disable_web_page_preview=True)))
-        return
+        await query.answer(results=[], cache_time=0, switch_pm_text="This Bot Provide Movie use to get movie", switch_pm_parameter="This Bot Provide Movie")
+
+ 
     elif '|' in query.query:
         query_parts = query.query.split('|', maxsplit=2)
         string = query_parts[0].strip()
