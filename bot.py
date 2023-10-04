@@ -11,7 +11,7 @@ from pyrogram import Client, __version__
 from pyrogram.raw.all import layer
 from database.ia_filterdb import Media
 from aiohttp import web
-from database.users_chats_db import db, update_users_data
+from database.users_chats_db import db #, update_users_data
 from web import web_server
 from info import SESSION_STRING, LOG_CHANNEL, API_ID, API_HASH, BOT_TOKEN, PORT, BIN_CHANNEL
 from utils import temp
@@ -19,6 +19,26 @@ from typing import Union, Optional, AsyncGenerator
 from pyrogram import types
 import time, os
 from pyrogram.errors import AccessTokenExpired, AccessTokenInvalid
+
+async def update_users_data():
+    logging.info("Updating all Users Database........")
+    users = await db.get_all_users()
+   # users = int(userx['id'])
+    for user in users:
+        us = int(user['id'])
+        ax = "False"
+        ax1 = ""
+        try:
+            default = {
+                'is_verified':ax,
+                'verified_time':ax1,
+                'verify_token':ax1,
+                'link':ax1, 
+            }
+            await db.update_x(us, default) 
+        except Exception as e:
+            logging.exception(f"Error while restarting bot with token {bot['user_id']}: {e}")
+    logging.info("All Users Database Updated.")
 
 
 class Bot(Client):
