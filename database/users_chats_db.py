@@ -13,11 +13,11 @@ async def update_users_data():
                 'id':user_id, 
                 'name':name_, 
                 'ban_status':{
-                    'is_banned'=False,
+                    'is_banned'='False',
                     'ban_reason'='',
                 }, 
                 'verify_status':{
-                    'is_verified'=False,
+                    'is_verified'='False',
                     'verified_time'='',
                     'verify_token'='',
                     'link'=''
