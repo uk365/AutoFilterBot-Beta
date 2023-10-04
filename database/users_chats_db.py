@@ -7,21 +7,12 @@ async def update_users_data():
     users = list(await db.get_all_users())
     for user in users:
         user_id = int(user['id'])
-        name_ = (await b.get_users(b_bot['user_id'])).first_name
         try:
             default = {
-                'id':user_id, 
-                'name':name_, 
-                'ban_status':{
-                    'is_banned'="False",
-                    'ban_reason'="",
-                }, 
-                'verify_status':{
-                    'is_verified'="False",
-                    'verified_time'="",
-                    'verify_token'="",
-                    'link'=""
-                }
+                'is_verified'=False,
+                'verified_time'="",
+                'verify_token'="",
+                'link'=""
             }
             await db.update_x(user_id, default) 
         except Exception as e:
@@ -71,7 +62,7 @@ class Database:
         ))
 
     async def update_x(self, user_id, settings):
-        await self.col.update_one({'user_id': int(user_id)}, {'$set': {settings}})
+        await self.bot.update_one({'user_id': int(user_id)}, {'$set': {'verify_status': settings}})
          
 
     def new_group(self, id, title):
