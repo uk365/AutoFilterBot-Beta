@@ -9,10 +9,10 @@ async def update_users_data():
         user_id = int(user['id'])
         try:
             default = {
-                'is_verified'=False,
-                'verified_time'="",
-                'verify_token'="",
-                'link'=""
+                'is_verified'='False',
+                'verified_time'='',
+                'verify_token'='',
+                'link'=''
             }
             await db.update_x(user_id, default) 
         except Exception as e:
