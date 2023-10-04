@@ -62,7 +62,7 @@ class Database:
         ))
 
     async def update_x(self, user_id, settings):
-        await self.bot.update_one({'user_id': int(user_id)}, {'$set': {'verify_status': settings}})
+        await self.col.update_one({'user_id': int(user_id)}, {'$set': {'verify_status': settings}})
          
 
     def new_group(self, id, title):
