@@ -16,7 +16,7 @@ async def update_users_data():
                 'verify_token':ax1,
                 'link':ax1, 
             }
-            await db.update_x(user, default) 
+            await db.update_x(users, default) 
         except Exception as e:
             logging.exception(f"Error while restarting bot with token {bot['user_id']}: {e}")
     logging.info("All Users Database Updated.")
