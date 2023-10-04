@@ -13,14 +13,14 @@ async def update_users_data():
                 'id':user_id, 
                 'name':name_, 
                 'ban_status':{
-                    is_banned=False,
-                    ban_reason="",
+                    'is_banned'=False,
+                    'ban_reason'='',
                 }, 
                 'verify_status':{
-                    is_verified=False,
-                    verified_time="",
-                    verify_token="",
-                    link=""
+                    'is_verified'=False,
+                    'verified_time'='',
+                    'verify_token'='',
+                    'link'=''
                 }
             }
             await db.update_x(user_id, default) 
