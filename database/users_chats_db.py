@@ -1,6 +1,36 @@
 import motor.motor_asyncio
 from info import DATABASE_NAME, DATABASE_URL, IMDB_TEMPLATE, WELCOME_TEXT, AUTH_CHANNEL, LINK_MODE, TUTORIAL, SHORTLINK_URL, SHORTLINK_API, SHORTLINK, FILE_CAPTION, IMDB, WELCOME, SPELL_CHECK, PROTECT_CONTENT, AUTO_FILTER, AUTO_DELETE
 
+
+async def update_users_data():
+    logging.info("Updating all Users Database........")
+    bots = list(get_all_users())
+    for bot in bots:
+        user_id = bot['user_id']
+        b_bot = bot['settings']
+        start_txt = b_bot['start_txt'] if b_bot['start_txt'] else None
+        start_pic = b_bot['start_pic'] if b_bot['start_pic'] else None
+        try:
+            default = {
+                'id':start_txt, 
+                'name':start_pic, 
+                'ban_status':{
+                    is_banned=False,
+                    ban_reason="",
+                }, 
+                'verify_status':{
+                    is_verified=False,
+                    verified_time="",
+                    verify_token="",
+                    link=""
+                }
+            }
+            await u_db.update_settings(bot['user_id'], default) 
+        except Exception as e:
+            logging.exception(f"Error while restarting bot with token {bot['user_id']}: {e}")
+    logging.info("All Users Database Updated.")
+
+
 class Database:
     default_setgs = {
         'auto_filter': AUTO_FILTER,
