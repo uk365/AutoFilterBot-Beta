@@ -25,7 +25,7 @@ async def update_users_data():
     users = await db.get_all_users()
    # users = int(userx['id'])
     for user in users:
-        us = int(user['id'])
+        us = user['id']
         ax = "False"
         ax1 = ""
         try:
