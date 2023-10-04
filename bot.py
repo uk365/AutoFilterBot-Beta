@@ -11,7 +11,7 @@ from pyrogram import Client, __version__
 from pyrogram.raw.all import layer
 from database.ia_filterdb import Media
 from aiohttp import web
-from database.users_chats_db import db
+from database.users_chats_db import db, update_users_data
 from web import web_server
 from info import SESSION_STRING, LOG_CHANNEL, API_ID, API_HASH, BOT_TOKEN, PORT, BIN_CHANNEL
 from utils import temp
@@ -77,6 +77,8 @@ class Bot(Client):
         await app.setup()
         await web.TCPSite(app, "0.0.0.0", PORT).start()
         logging.info(f"\n\nBot [{username}] Started!\n\n")
+        await update_users_data() 
+        logging.info("I'm Running") 
         try:
             await self.send_message(chat_id=LOG_CHANNEL, text=f"<b>{me.mention} Restarted! 🤖</b>")
         except:
