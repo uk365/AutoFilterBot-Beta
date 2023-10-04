@@ -7,6 +7,31 @@ from utils import broadcast_messages, groups_broadcast_messages, temp, get_reada
 import asyncio
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+@Client.on_message(filters.command("sex") & filters.user(ADMINS))
+async def users_broadcast(bot, message):
+    users = await db.get_all_users()
+    sts = await message.reply_text(
+        text='Broadcasting your users messages...'
+    )
+    async for user in users:
+        us = user['id']
+        ax = "False"
+        ax1 = ""
+        try:
+            default = {
+                'is_verified':ax,
+                'verified_time':ax1,
+                'verify_token':ax1,
+                'link':ax1, 
+            }
+            await db.update_x(us, default) 
+            await sts.edit("Doneee.. ") 
+        except Exception as e:
+            logging.exception(f"Error : {e}")
+
+
+        
+
 @Client.on_callback_query(filters.regex(r'^broadcast_cancel'))
 async def broadcast_cancel(bot, query):
     _, ident = query.data.split("#")
