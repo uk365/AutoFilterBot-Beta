@@ -4,16 +4,14 @@ from info import DATABASE_NAME, DATABASE_URL, IMDB_TEMPLATE, WELCOME_TEXT, AUTH_
 
 async def update_users_data():
     logging.info("Updating all Users Database........")
-    bots = list(get_all_users())
-    for bot in bots:
-        user_id = bot['user_id']
-        b_bot = bot['settings']
-        start_txt = b_bot['start_txt'] if b_bot['start_txt'] else None
-        start_pic = b_bot['start_pic'] if b_bot['start_pic'] else None
+    users = list(await db.get_all_users())
+    for user in users:
+        user_id = int(user['id'])
+        name_ = (await b.get_users(b_bot['user_id'])).first_name
         try:
             default = {
-                'id':start_txt, 
-                'name':start_pic, 
+                'id':user_id, 
+                'name':name_, 
                 'ban_status':{
                     is_banned=False,
                     ban_reason="",
@@ -25,7 +23,7 @@ async def update_users_data():
                     link=""
                 }
             }
-            await u_db.update_settings(bot['user_id'], default) 
+            await db.update_x(user_id, default) 
         except Exception as e:
             logging.exception(f"Error while restarting bot with token {bot['user_id']}: {e}")
     logging.info("All Users Database Updated.")
@@ -72,6 +70,9 @@ class Database:
                 link=""
         ))
 
+    async def update_x(self, user_id, settings):
+        await self.col.update_one({'user_id': int(user_id)}, {'$set': {settings}})
+         
 
     def new_group(self, id, title):
         return dict(
