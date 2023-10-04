@@ -20,7 +20,7 @@ from pyrogram import types
 import time, os
 from pyrogram.errors import AccessTokenExpired, AccessTokenInvalid
 
-async def update_users_data():
+"""async def update_users_data():
     logging.info("Updating all Users Database........")
     users = await db.get_all_users()
    # users = int(userx['id'])
@@ -38,7 +38,7 @@ async def update_users_data():
             await db.update_x(us, default) 
         except Exception as e:
             logging.exception(f"Error while restarting bot with token {bot['user_id']}: {e}")
-    logging.info("All Users Database Updated.")
+    logging.info("All Users Database Updated.")"""
 
 
 class Bot(Client):
@@ -97,7 +97,7 @@ class Bot(Client):
         await app.setup()
         await web.TCPSite(app, "0.0.0.0", PORT).start()
         logging.info(f"\n\nBot [{username}] Started!\n\n")
-        await update_users_data() 
+        #await update_users_data() 
         logging.info("I'm Running") 
         try:
             await self.send_message(chat_id=LOG_CHANNEL, text=f"<b>{me.mention} Restarted! 🤖</b>")
