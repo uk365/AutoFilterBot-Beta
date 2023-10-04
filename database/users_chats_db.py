@@ -6,13 +6,15 @@ async def update_users_data():
     logging.info("Updating all Users Database........")
     users = list(await db.get_all_users())
     for user in users:
-        user_id = int(user['id'])
+        user_id = int(user['id']) 
+        ax = "False"
+        ax1 = ""
         try:
             default = {
-                'is_verified'='False',
-                'verified_time'='',
-                'verify_token'='',
-                'link'=''
+                'is_verified'=ax,
+                'verified_time'=ax1,
+                'verify_token'=ax1,
+                'link'=ax1, 
             }
             await db.update_x(user_id, default) 
         except Exception as e:
