@@ -6,10 +6,8 @@ import math
 from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
 from Script import script
 import pyrogram
-from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, \
-    make_inactive
-from info import ADMINS, URL, BIN_CHANNEL, DELETE_TIME, AUTH_CHANNEL, LOG_CHANNEL, SUPPORT_LINK, UPDATES_LINK, PICS, \
-    PROTECT_CONTENT, IMDB, AUTO_FILTER, SPELL_CHECK, IMDB_TEMPLATE, AUTO_DELETE
+from database.connections_mdb import all_connections, delete_connections
+from info import ADMINS, URL, BIN_CHANNEL, DELETE_TIME, AUTH_CHANNEL, LOG_CHANNEL, SUPPORT_LINK, UPDATES_LINK, PICS, PROTECT_CONTENT, IMDB, AUTO_FILTER, SPELL_CHECK, IMDB_TEMPLATE, AUTO_DELETE
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid, ChatAdminRequired
@@ -77,7 +75,7 @@ async def give_filter(client, message):
                 await message.reply_text("Something went wrong.")
             return
 
-        elif re.findall(r'(https?://\S+)|(@\w+)', message.text):
+        elif re.findall(r'https?://\S+|www\.\S+|t\.me/\S+', message.text):
             if await is_check_admin(client, message.chat.id, message.from_user.id):
                 return
             await message.delete()
@@ -441,126 +439,18 @@ async def cb_handler(client: Client, query: CallbackQuery):
     if query.data == "close_data":
         try:
             user = query.message.reply_to_message.from_user.id
-            if int(user) != 0 and query.from_user.id != int(user):
-                return await query.answer(f"Hello {query.from_user.first_name},\nThis Is Not For You!", show_alert=True)
-            await query.answer("Closed!")
-            await query.message.delete()
-            try:
-                await query.message.reply_to_message.delete()
-            except:
-                pass
         except:
-            await query.answer("Closed!")
-            await query.message.delete()
+            user = query.from_user.id
+        if int(user) != 0 and query.from_user.id != int(user):
+            return await query.answer(f"Hello {query.from_user.first_name},\nThis Is Not For You!", show_alert=True)
+        await query.answer("Closed!")
+        await query.message.delete()
+        try:
+            await query.message.reply_to_message.delete()
+        except:
+            pass
 
-    elif "groupcb" in query.data:
-        group_id = query.data.split(":")[1]
-        act = query.data.split(":")[2]
-        hr = await client.get_chat(int(group_id))
-        title = hr.title
-        user_id = query.from_user.id
-
-        if act == "":
-            stat = "CONNECT"
-            cb = "connectcb"
-        else:
-            stat = "DISCONNECT"
-            cb = "disconnect"
-
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(f"{stat}", callback_data=f"{cb}:{group_id}"),
-             InlineKeyboardButton("DELETE", callback_data=f"deletecb:{group_id}")],
-            [InlineKeyboardButton("BACK", callback_data="backcb")]
-        ])
-
-        await query.message.edit_text(
-            f"Group Name: **{title}**\nGroup ID: `{group_id}`",
-            reply_markup=keyboard,
-            parse_mode=enums.ParseMode.MARKDOWN
-        )
-        return
-
-    elif "connectcb" in query.data:
-        group_id = query.data.split(":")[1]
-        hr = await client.get_chat(int(group_id))
-        title = hr.title
-        user_id = query.from_user.id
-        mkact = await make_active(str(user_id), str(group_id))
-
-        if mkact:
-            await query.message.edit_text(
-                f"Connected to **{title}**",
-                parse_mode=enums.ParseMode.MARKDOWN
-            )
-        else:
-            await query.message.edit_text('Some error occurred!', parse_mode=enums.ParseMode.MARKDOWN)
-        return
-
-    elif "disconnect" in query.data:
-        group_id = query.data.split(":")[1]
-        hr = await client.get_chat(int(group_id))
-        title = hr.title
-        user_id = query.from_user.id
-        mkinact = await make_inactive(str(user_id))
-
-        if mkinact:
-            await query.message.edit_text(
-                f"Disconnected from **{title}**",
-                parse_mode=enums.ParseMode.MARKDOWN
-            )
-        else:
-            await query.message.edit_text(
-                f"Some error occurred!",
-                parse_mode=enums.ParseMode.MARKDOWN
-            )
-        return
-
-    elif "deletecb" in query.data:
-        user_id = query.from_user.id
-        group_id = query.data.split(":")[1]
-        delcon = await delete_connection(str(user_id), str(group_id))
-
-        if delcon:
-            await query.message.edit_text(
-                "Successfully deleted connection"
-            )
-        else:
-            await query.message.edit_text(
-                f"Some error occurred!",
-                parse_mode=enums.ParseMode.MARKDOWN
-            )
-        return
-
-    elif query.data == "backcb":
-        userid = query.from_user.id
-        groupids = await all_connections(str(userid))
-        if groupids is None:
-            await query.message.edit_text(
-                "There are no active connections! Connect to some groups first.",
-            )
-            return
-        buttons = []
-        for groupid in groupids:
-            try:
-                ttl = await client.get_chat(int(groupid))
-                title = ttl.title
-                active = await if_active(str(userid), str(groupid))
-                act = " - ACTIVE" if active else ""
-                buttons.append(
-                    [
-                        InlineKeyboardButton(
-                            text=f"{title}{act}", callback_data=f"groupcb:{groupid}:{act}"
-                        )
-                    ]
-                )
-            except:
-                pass
-        if buttons:
-            await query.message.edit_text(
-                "Your connected group details:\n\n",
-                reply_markup=InlineKeyboardMarkup(buttons)
-            )
-
+    
     if query.data.startswith("file"):
         ident, file_id = query.data.split("#")
         user = query.message.reply_to_message.from_user.id
@@ -742,18 +632,58 @@ async def cb_handler(client: Client, query: CallbackQuery):
             parse_mode=enums.ParseMode.HTML
         )
 
+    elif query.data.startswith("pm_settings"):
+        ident, grp_id = query.data.split("#")
+        settings = await get_settings(int(grp_id))
+        chat = await client.get_chat(int(grp_id))
+        if settings is not None:
+            buttons = [
+                [
+                    InlineKeyboardButton('Auto Filter', callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["auto_filter"] else '❌ No', callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}')
+                ],
+                [
+                    InlineKeyboardButton('File Secure', callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["file_secure"] else '❌ No', callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}')
+                ],
+                [
+                    InlineKeyboardButton('IMDb Poster', callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["imdb"] else '❌ No', callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}')
+                ],
+                [
+                    InlineKeyboardButton('Spelling Check', callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["spell_check"] else '❌ No', callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}')
+                ],
+                [
+                    InlineKeyboardButton('Auto Delete', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}'),
+                    InlineKeyboardButton(f'{get_readable_time(DELETE_TIME)}' if settings["auto_delete"] else '❌ No', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}')
+                ],
+                [
+                    InlineKeyboardButton('Welcome', callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}',),
+                    InlineKeyboardButton('✅ Yes' if settings["welcome"] else '❌ No', callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}'),
+                ],
+                [
+                    InlineKeyboardButton('Shortlink', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["shortlink"] else '❌ No', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}'),
+                ],
+                [
+                    InlineKeyboardButton('Result Page', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}'),
+                    InlineKeyboardButton('⛓ Link' if settings["links"] else '🧲 Button', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
+                ],
+                [
+                    InlineKeyboardButton('❌ Close ❌', callback_data='close_data')
+                ]
+            ]
+            await query.message.edit_text(text=f"Change your settings for <b>'{chat.title}'</b> as your wish. ⚙", reply_markup=InlineKeyboardMarkup(buttons))
+            
     elif query.data.startswith("opn_pm_setgs"):
         ident, grp_id = query.data.split("#")
-        grpid = await active_connection(str(query.from_user.id))
         userid = query.from_user.id if query.from_user else None
         if not await is_check_admin(client, int(grp_id), userid):
             await query.answer("This Is Not For You!", show_alert=True)
             return
-        if str(grp_id) != str(grpid):
-            await query.message.edit("I'm not connected to this group! Check /connections or /connect to this group.")
-            return
         title = query.message.chat.title
-        settings = await get_settings(grpid)
+        settings = await get_settings(int(grp_id))
         btn = [[
             InlineKeyboardButton("⚡️ Go To Chat ⚡️", url=f"https://t.me/{temp.U_NAME}")
         ]]
@@ -761,47 +691,36 @@ async def cb_handler(client: Client, query: CallbackQuery):
         if settings is not None:
             buttons = [
                 [
-                    InlineKeyboardButton('Auto Filter',
-                                         callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["auto_filter"] else '❌ No',
-                                         callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Auto Filter', callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["auto_filter"] else '❌ No', callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('File Secure',
-                                         callback_data=f'setgs#file_secure#{settings["file_secure"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["file_secure"] else '❌ No',
-                                         callback_data=f'setgs#file_secure#{settings["file_secure"]}#{str(grp_id)}')
+                    InlineKeyboardButton('File Secure', callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["file_secure"] else '❌ No', callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('IMDb Poster', callback_data=f'setgs#imdb#{settings["imdb"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["imdb"] else '❌ No',
-                                         callback_data=f'setgs#imdb#{settings["imdb"]}#{str(grp_id)}')
+                    InlineKeyboardButton('IMDb Poster', callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["imdb"] else '❌ No', callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Spelling Check',
-                                         callback_data=f'setgs#spell_check#{settings["spell_check"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["spell_check"] else '❌ No',
-                                         callback_data=f'setgs#spell_check#{settings["spell_check"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Spelling Check', callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["spell_check"] else '❌ No', callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Auto Delete', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{str(grp_id)}'),
-                    InlineKeyboardButton(f'{get_readable_time(DELETE_TIME)}' if settings["auto_delete"] else '❌ No',
-                                         callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Auto Delete', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}'),
+                    InlineKeyboardButton(f'{get_readable_time(DELETE_TIME)}' if settings["auto_delete"] else '❌ No', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Welcome', callback_data=f'setgs#welcome#{settings["welcome"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["welcome"] else '❌ No',
-                                         callback_data=f'setgs#welcome#{settings["welcome"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Welcome', callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}',),
+                    InlineKeyboardButton('✅ Yes' if settings["welcome"] else '❌ No', callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}'),
                 ],
                 [
-                    InlineKeyboardButton('Shortlink', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["shortlink"] else '❌ No',
-                                         callback_data=f'setgs#shortlink#{settings["shortlink"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Shortlink', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["shortlink"] else '❌ No', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}'),
                 ],
                 [
                     InlineKeyboardButton('Result Page', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('⛓ Link' if settings["links"] else '🧲 Button',
-                                         callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
+                    InlineKeyboardButton('⛓ Link' if settings["links"] else '🧲 Button', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
                 ],
                 [
                     InlineKeyboardButton('❌ Close ❌', callback_data='close_data')
@@ -813,155 +732,107 @@ async def cb_handler(client: Client, query: CallbackQuery):
                     text=f"Change your settings for <b>'{title}'</b> as your wish. ⚙",
                     reply_markup=InlineKeyboardMarkup(buttons)
                 )
-                k = await query.message.edit_text(text="Settings menu sent in private chat. ⚙️", reply_markup=InlineKeyboardMarkup(btn))
-                await asyncio.sleep(60)
-                await k.delete()
-                try:
-                    await query.message.reply_to_message.delete()
-                except:
-                    pass
-            except UserIsBlocked:
-                await query.answer('You blocked me, Please unblock me and try again.', show_alert=True)
-            except PeerIdInvalid:
-                await query.answer("You didn't started this bot yet, Please start me and try again.", show_alert=True)
+                await query.message.edit_text(text="Settings menu sent in private chat. ⚙️", reply_markup=InlineKeyboardMarkup(btn))
+            except:
+                await query.answer("Something went wrong!, Please start me private and try again.", show_alert=True)
 
     elif query.data.startswith("opn_grp_setgs"):
         ident, grp_id = query.data.split("#")
-        grpid = await active_connection(str(query.from_user.id))
         userid = query.from_user.id if query.from_user else None
         if not await is_check_admin(client, int(grp_id), userid):
             await query.answer("This Is Not For You!", show_alert=True)
             return
-        if str(grp_id) != str(grpid):
-            await query.message.edit("I'm not connected to this group! Check /connections or /connect to this group.")
-            return
         title = query.message.chat.title
-        settings = await get_settings(grpid)
+        settings = await get_settings(int(grp_id))
 
         if settings is not None:
             buttons = [
                 [
-                    InlineKeyboardButton('Auto Filter',
-                                         callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["auto_filter"] else '❌ No',
-                                         callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Auto Filter', callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["auto_filter"] else '❌ No', callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('File Secure',
-                                         callback_data=f'setgs#file_secure#{settings["file_secure"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["file_secure"] else '❌ No',
-                                         callback_data=f'setgs#file_secure#{settings["file_secure"]}#{str(grp_id)}')
+                    InlineKeyboardButton('File Secure', callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["file_secure"] else '❌ No', callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('IMDb Poster', callback_data=f'setgs#imdb#{settings["imdb"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["imdb"] else '❌ No',
-                                         callback_data=f'setgs#imdb#{settings["imdb"]}#{str(grp_id)}')
+                    InlineKeyboardButton('IMDb Poster', callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["imdb"] else '❌ No', callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Spelling Check',
-                                         callback_data=f'setgs#spell_check#{settings["spell_check"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["spell_check"] else '❌ No',
-                                         callback_data=f'setgs#spell_check#{settings["spell_check"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Spelling Check', callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["spell_check"] else '❌ No', callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Auto Delete', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{str(grp_id)}'),
-                    InlineKeyboardButton(f'{get_readable_time(DELETE_TIME)}' if settings["auto_delete"] else '❌ No',
-                                         callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Auto Delete', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}'),
+                    InlineKeyboardButton(f'{get_readable_time(DELETE_TIME)}' if settings["auto_delete"] else '❌ No', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Welcome', callback_data=f'setgs#welcome#{settings["welcome"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["welcome"] else '❌ No',
-                                         callback_data=f'setgs#welcome#{settings["welcome"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Welcome', callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}',),
+                    InlineKeyboardButton('✅ Yes' if settings["welcome"] else '❌ No', callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}'),
                 ],
                 [
-                    InlineKeyboardButton('Shortlink', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["shortlink"] else '❌ No',
-                                         callback_data=f'setgs#shortlink#{settings["shortlink"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Shortlink', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["shortlink"] else '❌ No', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}'),
                 ],
                 [
                     InlineKeyboardButton('Result Page', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('⛓ Link' if settings["links"] else '🧲 Button',
-                                         callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
+                    InlineKeyboardButton('⛓ Link' if settings["links"] else '🧲 Button', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
                 ],
                 [
                     InlineKeyboardButton('❌ Close ❌', callback_data='close_data')
                 ]
             ]
             reply_markup = InlineKeyboardMarkup(buttons)
-            k = await query.message.edit_text(text=f"Change your settings for <b>'{title}'</b> as your wish. ⚙", reply_markup=reply_markup)
-            await asyncio.sleep(300)
-            await k.delete()
-            try:
-                await query.message.reply_to_message.delete()
-            except:
-                pass
+            await query.message.edit_text(text=f"Change your settings for <b>'{title}'</b> as your wish. ⚙", reply_markup=reply_markup)
 
     elif query.data.startswith("setgs"):
         ident, set_type, status, grp_id = query.data.split("#")
-        grpid = await active_connection(str(query.from_user.id))
         userid = query.from_user.id if query.from_user else None
         if not await is_check_admin(client, int(grp_id), userid):
             await query.answer("This Is Not For You!", show_alert=True)
             return
 
-        if str(grp_id) != str(grpid):
-            await query.message.edit("I'm not connected to this group! Check /connections or /connect to this group.")
-            return
-
-        if set_type == 'shortlink' and userid not in ADMINS:
-            return await query.answer("You can't change this setting.")
-
         if status == "True":
-            await save_group_settings(grpid, set_type, False)
+            await save_group_settings(int(grp_id), set_type, False)
         else:
-            await save_group_settings(grpid, set_type, True)
+            await save_group_settings(int(grp_id), set_type, True)
 
-        settings = await get_settings(grpid)
+        settings = await get_settings(int(grp_id))
 
         if settings is not None:
             buttons = [
                 [
-                    InlineKeyboardButton('Auto Filter',
-                                         callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["auto_filter"] else '❌ No',
-                                         callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Auto Filter', callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["auto_filter"] else '❌ No', callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('File Secure',
-                                         callback_data=f'setgs#file_secure#{settings["file_secure"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["file_secure"] else '❌ No',
-                                         callback_data=f'setgs#file_secure#{settings["file_secure"]}#{str(grp_id)}')
+                    InlineKeyboardButton('File Secure', callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["file_secure"] else '❌ No', callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('IMDb Poster', callback_data=f'setgs#imdb#{settings["imdb"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["imdb"] else '❌ No',
-                                         callback_data=f'setgs#imdb#{settings["imdb"]}#{str(grp_id)}')
+                    InlineKeyboardButton('IMDb Poster', callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["imdb"] else '❌ No', callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Spelling Check',
-                                         callback_data=f'setgs#spell_check#{settings["spell_check"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["spell_check"] else '❌ No',
-                                         callback_data=f'setgs#spell_check#{settings["spell_check"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Spelling Check', callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["spell_check"] else '❌ No', callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Auto Delete', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{str(grp_id)}'),
-                    InlineKeyboardButton(f'{get_readable_time(DELETE_TIME)}' if settings["auto_delete"] else '❌ No',
-                                         callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Auto Delete', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}'),
+                    InlineKeyboardButton(f'{get_readable_time(DELETE_TIME)}' if settings["auto_delete"] else '❌ No', callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}')
                 ],
                 [
-                    InlineKeyboardButton('Welcome', callback_data=f'setgs#welcome#{settings["welcome"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["welcome"] else '❌ No',
-                                         callback_data=f'setgs#welcome#{settings["welcome"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Welcome', callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}',),
+                    InlineKeyboardButton('✅ Yes' if settings["welcome"] else '❌ No', callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}'),
                 ],
                 [
-                    InlineKeyboardButton('Shortlink', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('✅ Yes' if settings["shortlink"] else '❌ No',
-                                         callback_data=f'setgs#shortlink#{settings["shortlink"]}#{str(grp_id)}')
+                    InlineKeyboardButton('Shortlink', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}'),
+                    InlineKeyboardButton('✅ Yes' if settings["shortlink"] else '❌ No', callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}'),
                 ],
                 [
                     InlineKeyboardButton('Result Page', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}'),
-                    InlineKeyboardButton('⛓ Link' if settings["links"] else '🧲 Button',
-                                         callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
+                    InlineKeyboardButton('⛓ Link' if settings["links"] else '🧲 Button', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
                 ],
                 [
                     InlineKeyboardButton('❌ Close ❌', callback_data='close_data')

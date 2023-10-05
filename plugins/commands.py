@@ -11,7 +11,7 @@ from database.ia_filterdb import Media, get_file_details, unpack_new_file_id, de
 from database.users_chats_db import db
 from info import INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, AUTH_CHANNEL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, PROTECT_CONTENT
 from utils import get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, save_group_settings, temp, get_readable_time, get_wish
-from database.connections_mdb import active_connection
+from database.connections_mdb import all_connections, delete_connections, add_connection
 import re
 import json
 import base64
@@ -165,34 +165,16 @@ async def start(client, message):
 
 @Client.on_message(filters.command('index_channels') & filters.user(ADMINS))
 async def channels_info(bot, message):
-           
     """Send basic information of index channels"""
-    if isinstance(INDEX_CHANNELS, (int, str)):
-        channels = [INDEX_CHANNELS]
-    elif isinstance(INDEX_CHANNELS, list):
-        channels = INDEX_CHANNELS
-    else:
-        return await message.reply("Unexpected type of index channels")
+    if not (ids:=INDEX_CHANNELS):
+        return await message.reply("Not set INDEX_CHANNELS")
 
     text = '**Indexed Channels:**\n'
-    for channel in channels:
-        chat = await bot.get_chat(channel)
-        if chat.username:
-            text += '\n@' + chat.username
-        else:
-            text += '\n' + chat.title or chat.first_name
-
-    text += f'\n\n**Total:** {len(INDEX_CHANNELS)}'
-
-    if len(text) < 4096:
-        await message.reply(text)
-    else:
-        file = 'Indexed channels.txt'
-        with open(file, 'w') as f:
-            f.write(text)
-        await message.reply_document(file)
-        os.remove(file)
-
+    for id in ids:
+        chat = await bot.get_chat(id)
+        text += f'{chat.title}\n'
+    text += f'\n**Total:** {len(ids)}'
+    await message.reply(text)
 
 @Client.on_message(filters.command('logs') & filters.user(ADMINS))
 async def log_file(bot, message):
@@ -218,173 +200,55 @@ async def stats(bot, message):
     
 @Client.on_message(filters.command('settings'))
 async def settings(client, message):
-    userid = message.from_user.id if message.from_user else None
-    if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
     chat_type = message.chat.type
-
     if chat_type == enums.ChatType.PRIVATE:
-        grpid = await active_connection(str(userid))
-        if grpid is not None:
-            grp_id = grpid
+        btn = []
+        ids = await all_connections(message.from_user.id)
+        for id in ids:
             try:
-                chat = await client.get_chat(grpid)
-                title = chat.title
+                chat = await client.get_chat(id)
+                btn.append(
+                    [InlineKeyboardButton(text=chat.title, callback_data=f'pm_settings#{chat.id}')]
+                )
             except:
-                await message.reply_text("Make sure i'm present in your group!", quote=True)
-                return
+                await delete_connections(id)
+        if btn:
+            await message.reply_text('Select the group whose settings you want to change.\n\n<i>If your group not showing here? Use this command in your group.</i>', reply_markup=InlineKeyboardMarkup(btn))
         else:
-            await message.reply_text("I'm not connected to any groups!", quote=True)
-            return
-
+            await message.reply_text("No groups found! Use this command group.")
+            
     elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         grp_id = message.chat.id
-        title = message.chat.title
 
-    else:
-        return
+        if not await is_check_admin(client, grp_id, message.from_user.id):
+            return await message.reply_text('You not admin in this group.')
 
-    if not await is_check_admin(client, grp_id, userid):
-        return await message.reply_text('You not admin in this group.')
-
-    settings = await get_settings(grp_id)
-
-    if settings is not None:
-        buttons = [
-            [
-                InlineKeyboardButton(
-                    'Auto Filter',
-                    callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}'
-                ),
-                InlineKeyboardButton(
-                    '✅ Yes' if settings["auto_filter"] else '❌ No',
-                    callback_data=f'setgs#auto_filter#{settings["auto_filter"]}#{grp_id}'
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    'File Secure',
-                    callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}'
-                ),
-                InlineKeyboardButton(
-                    '✅ Yes' if settings["file_secure"] else '❌ No',
-                    callback_data=f'setgs#file_secure#{settings["file_secure"]}#{grp_id}'
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    'IMDb Poster',
-                    callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}'
-                ),
-                InlineKeyboardButton(
-                    '✅ Yes' if settings["imdb"] else '❌ No',
-                    callback_data=f'setgs#imdb#{settings["imdb"]}#{grp_id}'
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    'Spelling Check',
-                    callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}'
-                ),
-                InlineKeyboardButton(
-                    '✅ Yes' if settings["spell_check"] else '❌ No',
-                    callback_data=f'setgs#spell_check#{settings["spell_check"]}#{grp_id}'
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    'Auto Delete',
-                    callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}'
-                ),
-                InlineKeyboardButton(
-                    f'{get_readable_time(DELETE_TIME)}' if settings["auto_delete"] else '❌ No',
-                    callback_data=f'setgs#auto_delete#{settings["auto_delete"]}#{grp_id}'
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    'Welcome',
-                    callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}',
-                ),
-                InlineKeyboardButton(
-                    '✅ Yes' if settings["welcome"] else '❌ No',
-                    callback_data=f'setgs#welcome#{settings["welcome"]}#{grp_id}',
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    'Shortlink',
-                    callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}',
-                ),
-                InlineKeyboardButton(
-                    '✅ Yes' if settings["shortlink"] else '❌ No',
-                    callback_data=f'setgs#shortlink#{settings["shortlink"]}#{grp_id}',
-                ),
-            ],
-            [
-                InlineKeyboardButton('Result Page', callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}'),
-                InlineKeyboardButton('⛓ Link' if settings["links"] else '🧲 Button',
-                                    callback_data=f'setgs#links#{settings["links"]}#{str(grp_id)}')
-            ],
-            [
-                InlineKeyboardButton('❌ Close ❌', callback_data='close_data')
-            ]
-        ]
-
-    if chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        async for member in client.get_chat_members(grp_id, filter=enums.ChatMembersFilter.ADMINISTRATORS):
+            if not member.user.is_bot:
+                await add_connection(grp_id, member.user.id)
+        
         btn = [[
             InlineKeyboardButton("👤 Open Private Chat 👤", callback_data=f"opn_pm_setgs#{grp_id}")
         ],[
             InlineKeyboardButton("👥 Open Here 👥", callback_data=f"opn_grp_setgs#{grp_id}")
         ]]
-        k = await message.reply_text(
+        await message.reply_text(
             text="Where do you want to open the settings menu? ⚙️",
             reply_markup=InlineKeyboardMarkup(btn),
-            parse_mode=enums.ParseMode.HTML
-        )
-        await asyncio.sleep(300)
-        await k.delete()
-        try:
-            await message.delete()
-        except:
-            pass
-    else:
-        await message.reply_text(
-            text=f"Change your settings for <b>'{title}'</b> as your wish. ⚙",
-            reply_markup=InlineKeyboardMarkup(buttons),
             parse_mode=enums.ParseMode.HTML
         )
 
 
 @Client.on_message(filters.command('set_template'))
 async def save_template(client, message):
-    userid = message.from_user.id if message.from_user else None
-    if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
     chat_type = message.chat.type
+    if chat_type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await message.reply_text("Use this command in group.")
+        
+    grp_id = message.chat.id
+    title = message.chat.title
 
-    if chat_type == enums.ChatType.PRIVATE:
-        grpid = await active_connection(str(userid))
-        if grpid is not None:
-            grp_id = grpid
-            try:
-                chat = await client.get_chat(grpid)
-                title = chat.title
-            except:
-                await message.reply_text("Make sure I'm present in your group!!", quote=True)
-                return
-        else:
-            await message.reply_text("I'm not connected to any groups!", quote=True)
-            return
-
-    elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        grp_id = message.chat.id
-        title = message.chat.title
-
-    else:
-        return
-
-    if not await is_check_admin(client, grp_id, userid):
+    if not await is_check_admin(client, grp_id, message.from_user.id):
         return await message.reply_text('You not admin in this group.')
 
     try:
@@ -398,33 +262,14 @@ async def save_template(client, message):
     
 @Client.on_message(filters.command('set_caption'))
 async def save_caption(client, message):
-    userid = message.from_user.id if message.from_user else None
-    if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
     chat_type = message.chat.type
+    if chat_type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await message.reply_text("Use this command in group.")
+        
+    grp_id = message.chat.id
+    title = message.chat.title
 
-    if chat_type == enums.ChatType.PRIVATE:
-        grpid = await active_connection(str(userid))
-        if grpid is not None:
-            grp_id = grpid
-            try:
-                chat = await client.get_chat(grpid)
-                title = chat.title
-            except:
-                await message.reply_text("Make sure I'm present in your group!!", quote=True)
-                return
-        else:
-            await message.reply_text("I'm not connected to any groups!", quote=True)
-            return
-
-    elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        grp_id = message.chat.id
-        title = message.chat.title
-
-    else:
-        return
-
-    if not await is_check_admin(client, grp_id, userid):
+    if not await is_check_admin(client, grp_id, message.from_user.id):
         return await message.reply_text('You not admin in this group.')
 
     try:
@@ -438,33 +283,14 @@ async def save_caption(client, message):
     
 @Client.on_message(filters.command('set_shortlink'))
 async def save_shortlink(client, message):
-    userid = message.from_user.id if message.from_user else None
-    if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
     chat_type = message.chat.type
+    if chat_type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await message.reply_text("Use this command in group.")
+        
+    grp_id = message.chat.id
+    title = message.chat.title
 
-    if chat_type == enums.ChatType.PRIVATE:
-        grpid = await active_connection(str(userid))
-        if grpid is not None:
-            grp_id = grpid
-            try:
-                chat = await client.get_chat(grpid)
-                title = chat.title
-            except:
-                await message.reply_text("Make sure I'm present in your group!!", quote=True)
-                return
-        else:
-            await message.reply_text("I'm not connected to any groups!", quote=True)
-            return
-
-    elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        grp_id = message.chat.id
-        title = message.chat.title
-
-    else:
-        return
-
-    if not await is_check_admin(client, grp_id, userid):
+    if not await is_check_admin(client, grp_id, message.from_user.id):
         return await message.reply_text('You not admin in this group.')
 
     try:
@@ -483,73 +309,49 @@ async def save_shortlink(client, message):
     await save_group_settings(grp_id, 'api', api)
     await message.reply_text(f"Successfully changed shortlink for {title} to\n\nURL - {url}\nAPI - {api}")
     
-    
-@Client.on_message(filters.command('get_shortlink'))
-async def get_save_shortlink(client, message):
-    userid = message.from_user.id if message.from_user else None
-    if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
+
+@Client.on_message(filters.command('get_custom_settings'))
+async def get_custom_settings(client, message):
     chat_type = message.chat.type
-
-    if chat_type == enums.ChatType.PRIVATE:
-        grpid = await active_connection(str(userid))
-        if grpid is not None:
-            grp_id = grpid
-            try:
-                chat = await client.get_chat(grpid)
-                title = chat.title
-            except:
-                await message.reply_text("Make sure I'm present in your group!!", quote=True)
-                return
-        else:
-            await message.reply_text("I'm not connected to any groups!", quote=True)
-            return
-
-    elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        grp_id = message.chat.id
-        title = message.chat.title
-
-    else:
-        return
-
-    if not await is_check_admin(client, grp_id, userid):
+    if chat_type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await message.reply_text("Use this command in group.")
+    grp_id = message.chat.id
+    title = message.chat.title
+    if not await is_check_admin(client, grp_id, message.from_user.id):
         return await message.reply_text('You not admin in this group.')
-
+        
     settings = await get_settings(grp_id)
-    url = settings["url"]
-    api = settings["api"]
-    await message.reply_text(f"Shortlink for {title}\n\nURL - {url}\nAPI - {api}")
-    
-    
+    text = f"""Custom settings for: {title}
+
+Shortlink URL: {settings["url"]}
+Shortlink API: {settings["api"]}
+
+IMDb Template: {settings['template']}
+
+File Caption: {settings['caption']}
+
+Welcome Text: {settings['welcome_text']}
+
+Tutorial Link: {settings['tutorial']}
+
+Force Channels: {str(ids)[1:-1] if (ids:=settings['fsub']) else 'Not Set'}"""
+
+    btn = [[
+        InlineKeyboardButton(text="Close", callback_data="close_data")
+    ]]
+    await message.reply_text(text, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=True)
+
+
 @Client.on_message(filters.command('set_welcome'))
 async def save_welcome(client, message):
-    userid = message.from_user.id if message.from_user else None
-    if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
     chat_type = message.chat.type
+    if chat_type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await message.reply_text("Use this command in group.")
+        
+    grp_id = message.chat.id
+    title = message.chat.title
 
-    if chat_type == enums.ChatType.PRIVATE:
-        grpid = await active_connection(str(userid))
-        if grpid is not None:
-            grp_id = grpid
-            try:
-                chat = await client.get_chat(grpid)
-                title = chat.title
-            except:
-                await message.reply_text("Make sure I'm present in your group!!", quote=True)
-                return
-        else:
-            await message.reply_text("I'm not connected to any groups!", quote=True)
-            return
-
-    elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        grp_id = message.chat.id
-        title = message.chat.title
-
-    else:
-        return
-
-    if not await is_check_admin(client, grp_id, userid):
+    if not await is_check_admin(client, grp_id, message.from_user.id):
         return await message.reply_text('You not admin in this group.')
 
     try:
@@ -612,33 +414,14 @@ async def delete_all_index(bot, message):
 
 @Client.on_message(filters.command('set_tutorial'))
 async def save_tutorial(client, message):
-    userid = message.from_user.id if message.from_user else None
-    if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
     chat_type = message.chat.type
+    if chat_type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await message.reply_text("Use this command in group.")
+        
+    grp_id = message.chat.id
+    title = message.chat.title
 
-    if chat_type == enums.ChatType.PRIVATE:
-        grpid = await active_connection(str(userid))
-        if grpid is not None:
-            grp_id = grpid
-            try:
-                chat = await client.get_chat(grpid)
-                title = chat.title
-            except:
-                await message.reply_text("Make sure I'm present in your group!!", quote=True)
-                return
-        else:
-            await message.reply_text("I'm not connected to any groups!", quote=True)
-            return
-
-    elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        grp_id = message.chat.id
-        title = message.chat.title
-
-    else:
-        return
-
-    if not await is_check_admin(client, grp_id, userid):
+    if not await is_check_admin(client, grp_id, message.from_user.id):
         return await message.reply_text('You not admin in this group.')
 
     try:
@@ -652,33 +435,14 @@ async def save_tutorial(client, message):
 
 @Client.on_message(filters.command('set_fsub'))
 async def set_fsub(client, message):
-    userid = message.from_user.id if message.from_user else None
-    if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
     chat_type = message.chat.type
+    if chat_type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await message.reply_text("Use this command in group.")
+        
+    grp_id = message.chat.id
+    title = message.chat.title
 
-    if chat_type == enums.ChatType.PRIVATE:
-        grpid = await active_connection(str(userid))
-        if grpid is not None:
-            grp_id = grpid
-            try:
-                chat = await client.get_chat(grpid)
-                title = chat.title
-            except:
-                await message.reply_text("Make sure I'm present in your group!!", quote=True)
-                return
-        else:
-            await message.reply_text("I'm not connected to any groups!", quote=True)
-            return
-
-    elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        grp_id = message.chat.id
-        title = message.chat.title
-
-    else:
-        return
-
-    if not await is_check_admin(client, grp_id, userid):
+    if not await is_check_admin(client, grp_id, message.from_user.id):
         return await message.reply_text('You not admin in this group.')
 
     try:
@@ -689,15 +453,17 @@ async def set_fsub(client, message):
     except ValueError:
         return await message.reply_text('Make sure ids is integer.')
         
-    titles = "Channels:\n"
+    channels = "Channels:\n"
     for id in fsub_ids:
         try:
-            titles += (await client.get_chat(id)).title
-            titles += '\n'
+            chat = await client.get_chat(id)
         except Exception as e:
             return await message.reply_text(f"{id} is invalid!\nMake sure this bot admin in that channel.\n\nError - {e}")
+        if chat.type != enums.ChatType.CHANNEL:
+            return await message.reply_text(f"{id} is not channel.")
+        channels += f'{chat.title}\n'
     await save_group_settings(grp_id, 'fsub', fsub_ids)
-    await message.reply_text(f"Successfully set fsub for {title}\n\n{titles}")
+    await message.reply_text(f"Successfully set force channels for {title} to\n\n{channels}")
 
 
 @Client.on_message(filters.command('telegraph'))
